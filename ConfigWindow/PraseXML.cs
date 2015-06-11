@@ -63,7 +63,7 @@ namespace ConfigFileAlter
             {
                 AddColumn(attr.Name, attr.Value, row);
                 if (this.Attrs.Contains(attr.Name)) continue;
-                this.Attrs.Add(attr.Name);
+                    this.Attrs.Add(attr.Name);
             }
             this.table.Rows.Add(row);
         }

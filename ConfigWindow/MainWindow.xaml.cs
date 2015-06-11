@@ -129,20 +129,6 @@ namespace ConfigWindow
             DependencyProperty.Register("SelectedItems", typeof(ObservableCollection<DataRow>), typeof(MainViewModel), new PropertyMetadata((sender, e) => { }));
         #endregion
 
-        #region SelectedProperty
-        public string SelectedProperty
-        {
-            get { return (string)GetValue(SelectedPropertyProperty); }
-            set { SetValue(SelectedPropertyProperty, value); }
-        }
-        public static readonly DependencyProperty SelectedPropertyProperty =
-            DependencyProperty.Register("SelectedProperty", typeof(string), typeof(MainViewModel), new PropertyMetadata((sender, e) =>
-            {
-                var vm = sender as MainViewModel;
-                if (vm == null) return;
-            }));
-        #endregion
-
         #region NodePath
         public string NodePath
         {
@@ -195,6 +181,7 @@ namespace ConfigWindow
 
         public DataTable OriginValueTable { get; set; }
         public List<DataRow> OriginSeletedItems { get; set; }
+        public List<string> PropertyList { get; set; }
 
         private void RegistyCommand()
         {
@@ -209,12 +196,14 @@ namespace ConfigWindow
             this.OpenFileCommand = new ActionCommand(OpenFileAction);
             this.SaveFileCommand = new ActionCommand(SaveFileAction);
             this.GirdUpdateCommand = new ActionCommand(GirdUpdateAction);
+            this.CheckColumsCommand = new ActionCommand(CheckColumsAction);
         }
 
         public void Load()
         {
             InitCondition();
             RegistyCommand();
+            this.PropertyList = new List<string>();
             this.FileList = new ObservableCollection<string>();
         }
 
@@ -347,73 +336,47 @@ namespace ConfigWindow
             }
         }
 
+        public ICommand CheckColumsCommand { get; set; }
+        private void CheckColumsAction(object obj)
+        {
+            var propertyies = (System.Collections.IList)obj;
+            if (propertyies == null) return;
+            this.PropertyList = propertyies.Cast<string>().ToList();
+        }
+
         // 执行更新
         public void ExecUpdate()
         {
             //TODO 暂时取消
-            if (this.SelectedItems == null || string.IsNullOrEmpty(SelectedProperty)) return;
+            if (this.SelectedItems == null || PropertyList.Count == 0) return;
 
             foreach (var item in this.SelectedItems)
             {
                 var currentIndex = item[Constants.IndexName];
                 var row = this.OriginSeletedItems.FirstOrDefault(x => string.Equals(x[Constants.IndexName], currentIndex));
                 if (row == null) continue;
-                string str = row[SelectedProperty].ToString();
 
-                //Exec Replace 
-                if (CurrentReplace.CanExec)
-                    str = ExecReplace(str);
+                foreach (var prop in PropertyList)
+                {
 
-                //Exec Remmove
-                if (CurrentSubStr.CanExec)
-                    str = ExecRemove(str);
+                    string str = row[prop].ToString();
 
-                //Exec Insert
-                if (CurrentInsert.CanExec)
-                    str = ExecInsert(str);
-                item[SelectedProperty] = str;
+                    //Exec Replace 
+                    if (CurrentReplace.CanExec)
+                        str = ExecReplace(str);
+
+                    //Exec Remmove
+                    if (CurrentSubStr.CanExec)
+                        str = ExecRemove(str);
+
+                    //Exec Insert
+                    if (CurrentInsert.CanExec)
+                        str = ExecInsert(str);
+                    item[prop] = str;
+                }
+
             }
         }
-
-        public void ExecReplace()
-        {
-            return;
-            if (this.SelectedItems == null || string.IsNullOrEmpty(SelectedProperty)) return;
-            foreach (var item in this.SelectedItems)
-            {
-                string str = item[SelectedProperty].ToString();
-                //Exec Replace 
-                str = ExecReplace(str);
-                item[SelectedProperty] = str;
-            }
-        }
-
-        public void ExecRemove()
-        {
-            return;
-            if (this.SelectedItems == null || string.IsNullOrEmpty(SelectedProperty)) return;
-            foreach (var item in this.SelectedItems)
-            {
-                string str = item[SelectedProperty].ToString();
-                //Exec Replace 
-                str = ExecRemove(str);
-                item[SelectedProperty] = str;
-            }
-        }
-
-        public void ExecInsert()
-        {
-            return;
-            if (this.SelectedItems == null || string.IsNullOrEmpty(SelectedProperty)) return;
-            foreach (var item in this.SelectedItems)
-            {
-                string str = item[SelectedProperty].ToString();
-                //Exec Replace 
-                str = ExecInsert(str);
-                item[SelectedProperty] = str;
-            }
-        }
-
         public string ExecReplace(string originStr)
         {
             originStr = originStr.ReplaceExt(CurrentReplace.oldStr, CurrentReplace.newStr, CurrentReplace.UseRegix);
@@ -497,7 +460,6 @@ namespace ConfigWindow
         {
             CanExec = !string.IsNullOrEmpty(oldStr);
             Container.ExecUpdate();
-            Container.ExecReplace();
         }
     }
 
@@ -572,7 +534,6 @@ namespace ConfigWindow
         {
             this.CanExec = !string.IsNullOrEmpty(newStr) || !string.IsNullOrEmpty(PreFix) || !string.IsNullOrEmpty(Suffix);
             Container.ExecUpdate();
-            Container.ExecInsert();
         }
     }
 
@@ -653,7 +614,6 @@ namespace ConfigWindow
         {
             this.CanExec = First != 0 || Last != 0;
             Container.ExecUpdate();
-            Container.ExecRemove();
         }
     }
 

@@ -155,6 +155,8 @@ namespace ConfigWindow
             {
                 var vm = sender as MainViewModel;
                 if (vm == null) return;
+                if (vm.Table != null)
+                    vm.SaveFile(e.OldValue.ToString(), vm.Table);
                 vm.InitTable();
             }));
         #endregion
@@ -179,6 +181,16 @@ namespace ConfigWindow
             DependencyProperty.Register("AttrList", typeof(ObservableCollection<string>), typeof(MainViewModel), new PropertyMetadata((sender, e) => { }));
         #endregion
 
+        #region XmlList
+        public List<XMLArch> XmlList
+        {
+            get { return (List<XMLArch>)GetValue(XmlListProperty); }
+            set { SetValue(XmlListProperty, value); }
+        }
+        public static readonly DependencyProperty XmlListProperty =
+            DependencyProperty.Register("XmlList", typeof(List<XMLArch>), typeof(MainViewModel), new PropertyMetadata((sender, e) => { }));
+        #endregion
+
         public DataTable OriginValueTable { get; set; }
         public List<DataRow> OriginSeletedItems { get; set; }
         public List<string> PropertyList { get; set; }
@@ -197,6 +209,7 @@ namespace ConfigWindow
             this.SaveFileCommand = new ActionCommand(SaveFileAction);
             this.GirdUpdateCommand = new ActionCommand(GirdUpdateAction);
             this.CheckColumsCommand = new ActionCommand(CheckColumsAction);
+            this.ChangeItemCommand = new ActionCommand(ChangeItemAction);
         }
 
         public void Load()
@@ -205,17 +218,22 @@ namespace ConfigWindow
             RegistyCommand();
             this.PropertyList = new List<string>();
             this.FileList = new ObservableCollection<string>();
+            this.XmlList = new List<XMLArch>();
         }
 
         public void InitTable()
         {
             PraseXML.Instance.StartPraseXML(FilePath, NodePath);
             Table = PraseXML.Instance.table;
+            this.XmlList = PraseXML.Instance.XMLTree;
+            if (Table != null)
+                OriginValueTable = Table.Copy();
+
             var list = new ObservableCollection<string>();
             for (int i = 0; i < PraseXML.Instance.Attrs.Count; i++)
                 list.Add(PraseXML.Instance.Attrs[i]);
             this.AttrList = list;
-            OriginValueTable = Table.Copy();
+
             this.SelectedItems = new ObservableCollection<DataRow>();
             this.OriginSeletedItems = new List<DataRow>();
         }
@@ -299,15 +317,19 @@ namespace ConfigWindow
                     if (this.FileList.Contains(filename)) continue;
                     this.FileList.Add(filename);
                 }
-                this.FilePath = this.FileList.First();
             }
         }
 
         public ICommand SaveFileCommand { get; set; }
         private void SaveFileAction(object obj)
         {
-            var res = PraseXML.Instance.SaveFile(this.FilePath, Table);
+            var res = SaveFile(this.FilePath, Table);
             if (res) InitTable();
+        }
+        public bool SaveFile(string file, DataTable datas)
+        {
+            //return PraseXML.Instance.SaveFile(file, datas);
+            return false;
         }
 
         public ICommand GirdUpdateCommand { get; set; }
@@ -342,6 +364,17 @@ namespace ConfigWindow
             var propertyies = (System.Collections.IList)obj;
             if (propertyies == null) return;
             this.PropertyList = propertyies.Cast<string>().ToList();
+        }
+
+        public ICommand ChangeItemCommand { get; set; }
+        private void ChangeItemAction(object obj)
+        {
+            var arch = obj as XMLArch;
+            if (arch == null) return;
+            PraseXML.Instance.SaveFile(this.FilePath);
+
+            this.Table = arch.ChildAttrs;
+            this.OriginValueTable = arch.ChildAttrs.Copy();
         }
 
         // 执行更新
@@ -612,7 +645,7 @@ namespace ConfigWindow
 
         public override void Exec()
         {
-            this.CanExec = First != 0 || Last != 0;
+            this.CanExec = First != 0 || Last != 0 || this.EndIndex != 0;
             Container.ExecUpdate();
         }
     }

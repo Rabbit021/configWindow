@@ -108,7 +108,20 @@
 			</Grid>
 			<GridSplitter Grid.Row="1" Width="3" Background="#FF1B1B1B"/>
 			<GridSplitter HorizontalAlignment="Stretch" Grid.Row="2" VerticalAlignment="Top" Grid.ColumnSpan="2" Height="3"/>
-			<ListBox Grid.Row="1" SelectedItem="{Binding FilePath}" Margin="0,0,5,0" ItemsSource="{Binding FileList}"/>
+			<Grid Grid.Row="1" Margin="1,0,-1,0">
+				<Grid.RowDefinitions>
+					<RowDefinition/>
+					<RowDefinition Height="2*"/>
+				</Grid.RowDefinitions>
+				<ListBox SelectedItem="{Binding FilePath}" Margin="0,0,5,0" ItemsSource="{Binding FileList}"/>
+				<TreeView x:Name="treeView" ItemsSource="{Binding XmlList}" ItemTemplate="{DynamicResource ChildNode}" Background="#FFFEFEFE" Grid.Row="1" Margin="3,1,4,-1">
+					<i:Interaction.Triggers>
+						<i:EventTrigger EventName="SelectedItemChanged">
+							<i:InvokeCommandAction Command="{Binding ChangeItemCommand}" CommandParameter="{Binding SelectedItem, ElementName=treeView}"/>
+						</i:EventTrigger>
+					</i:Interaction.Triggers>
+				</TreeView>
+			</Grid>
 			<TextBox
 		TextWrapping="Wrap" Text="{Binding FilePath}" d:LayoutOverrides="Height" IsReadOnly="True" VerticalContentAlignment="Center"/>
 			<xctk:CheckComboBox x:Name="checkComboBox" HorizontalAlignment="Left" Grid.Column="1" Grid.Row="1" VerticalAlignment="Top" ItemsSource="{Binding AttrList}"  SelectedItemsOverride="{Binding SelectedProperties}">

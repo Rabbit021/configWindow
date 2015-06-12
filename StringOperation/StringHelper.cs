@@ -26,14 +26,17 @@ namespace StringOperation
             }
             return updatedStr;
         }
-      
+
         public static string RemoveFromTo(this string originStr, int from, int to)
         {
             StringBuilder builder = new StringBuilder(originStr);
             try
             {
-                int canLength = Math.Min((to - from), builder.Length);
-                if (from < originStr.Length)
+                if (from == 0) from++;
+                from = Math.Min(from, builder.Length) - 1;
+                to = Math.Min(to, builder.Length) - 1;
+                int canLength = Math.Min((to - from) + 1, builder.Length);
+                if (from < originStr.Length && from >= 0)
                     builder.Remove(from, canLength);
             }
             catch (Exception ex)

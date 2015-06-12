@@ -7,7 +7,7 @@ namespace StringOperation
 {
     public class Constants
     {
-        public readonly static string IndexName = "Index";
+        public readonly static string IndexName = "IndexName";
         public readonly static string NodeName = "Node";
     }
 }

@@ -38,13 +38,13 @@ namespace ConfigFileAlter
                 table = new DataTable();
                 index = 0;
                 this.nodePath = nodePath;
-                Attrs.Clear();
                 if (!string.IsNullOrEmpty(nodePath))
-                    this.table = ParseNodes(doc.SelectSingleNode(nodePath) as XmlElement);
+                    this.table = ParseNodes(doc.SelectSingleNode(nodePath) as XmlElement, this.Attrs);
                 else
-                    this.table = ParseNodes(rootElement);
+                    this.table = ParseNodes(rootElement, this.Attrs);
 
                 this.XMLTree = PraseFile(filename);
+
             }
             catch (System.Exception ex)
             {
@@ -52,18 +52,18 @@ namespace ConfigFileAlter
             }
         }
 
-        public DataTable ParseNodes(XmlElement root)
+        public DataTable ParseNodes(XmlElement root, List<string> attrs)
         {
             var dataTable = new DataTable();
             if (root == null) return dataTable;
             var NodeList = root.ChildNodes;
             int index = 0;
             foreach (XmlElement node in NodeList)
-                ParseNode(node, index++, dataTable);
+                ParseNode(node, index++, dataTable, attrs);
             return dataTable;
         }
 
-        public void ParseNode(XmlElement node, int index, DataTable dataTable)
+        public void ParseNode(XmlElement node, int index, DataTable dataTable, List<string> attrList)
         {
             var row = dataTable.NewRow();
             AddColumn(Constants.IndexName, index.ToString(), row, dataTable);
@@ -76,8 +76,8 @@ namespace ConfigFileAlter
             foreach (XmlAttribute attr in attrs)
             {
                 AddColumn(attr.Name, attr.Value, row, dataTable);
-                if (this.Attrs.Contains(attr.Name)) continue;
-                this.Attrs.Add(attr.Name);
+                if (attrList.Contains(attr.Name)) continue;
+                attrList.Add(attr.Name);
             }
         }
 
@@ -111,15 +111,11 @@ namespace ConfigFileAlter
         public bool SaveFile(string filename)
         {
             if (string.IsNullOrEmpty(filename)) return false;
+            var res = MessageBox.Show("是否保存", "", MessageBoxButton.YesNo);
+            if (res == MessageBoxResult.No) return false;
             try
             {
-                doc.RemoveAll();
-                foreach (var item in XMLTree)
-                {
-                    doc.AppendChild(item.Node);
-                    UpdateNode(item.Node, item.ChildAttrs);
-                    SaveNode(item.ChildNode, item.Node);
-                }
+                UpdateDocumnent(doc, XMLTree);
                 doc.Save(filename);
                 return true;
             }
@@ -127,6 +123,37 @@ namespace ConfigFileAlter
             {
                 MessageBox.Show("保存异常");
                 return false;
+            }
+        }
+
+        private void UpdateDocumnent(XmlNode doc, List<XMLArch> XMLTree)
+        {
+            foreach (var child in XMLTree)
+            {
+                UpdateArch(child);
+                doc.AppendChild(child.Node);
+                UpdateDocumnent(child.Node, child.ChildNode);
+            }
+        }
+
+        private void UpdateArch(XMLArch child)
+        {
+            var datas = child.ChildAttrs;
+            var attrList = child.Attrs;
+            if (attrList == null) return;
+            foreach (DataRow row in datas.Rows)
+            {
+                var nodeName = row[Constants.NodeName].ToString();
+                if (string.IsNullOrEmpty(nodeName)) return;
+                var index = row[Constants.IndexName];
+                string findstr = string.Format("{0}[@{1}='{2}']", nodeName, Constants.IndexName, index);
+                XmlElement xmlChild = child.Node.SelectSingleNode(findstr) as XmlElement;
+                if (xmlChild == null) continue;
+                foreach (var attr in attrList)
+                {
+                    if (string.IsNullOrEmpty(attr)) continue;
+                    xmlChild.SetAttribute(attr, row[attr].ToString());
+                }
             }
         }
 
@@ -145,20 +172,15 @@ namespace ConfigFileAlter
             //root.RemoveAll();
             foreach (DataRow row in datas.Rows)
             {
-                WriteToAttr(root, row);
-            }
-        }
-
-        private void WriteToAttr(XmlElement node, DataRow row)
-        {
-            var nodeName = row[Constants.NodeName].ToString();
-            if (string.IsNullOrEmpty(nodeName)) return;
-            var child = doc.CreateElement(nodeName);
-            node.AppendChild(child);
-            foreach (var attr in Attrs)
-            {
-                if (string.IsNullOrEmpty(attr)) continue;
-                child.SetAttribute(attr, row[attr].ToString());
+                var nodeName = row[Constants.NodeName].ToString();
+                if (string.IsNullOrEmpty(nodeName)) return;
+                var child = doc.CreateElement(nodeName);
+                root.AppendChild(child);
+                foreach (var attr in Attrs)
+                {
+                    if (string.IsNullOrEmpty(attr)) continue;
+                    child.SetAttribute(attr, row[attr].ToString());
+                }
             }
         }
 
@@ -167,7 +189,7 @@ namespace ConfigFileAlter
             List<XMLArch> tree = new List<XMLArch>();
             try
             {
-                var arch = PraseRoot(doc.DocumentElement);
+                var arch = PraseRoot(doc.DocumentElement, 0);
                 tree.Add(arch);
             }
             catch
@@ -177,16 +199,21 @@ namespace ConfigFileAlter
             return tree;
         }
 
-        private XMLArch PraseRoot(XmlElement root)
+        private XMLArch PraseRoot(XmlElement root, int index)
         {
             XMLArch arch = new XMLArch();
+            root.SetAttribute(Constants.IndexName, index.ToString());
             arch.Node = root;
-            arch.ChildAttrs = this.ParseNodes(root);
-
+            arch.Attrs = new List<string>();
+            arch.ChildAttrs = this.ParseNodes(root, arch.Attrs);
             var NodeList = root.ChildNodes;
+
             List<XMLArch> tree = new List<XMLArch>();
+            int count = 0;
             foreach (XmlElement node in NodeList)
-                tree.Add(PraseRoot(node));
+            {
+                tree.Add(PraseRoot(node, count++));
+            }
             arch.ChildNode = tree;
 
             return arch;

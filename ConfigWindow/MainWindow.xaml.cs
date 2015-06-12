@@ -224,20 +224,15 @@ namespace ConfigWindow
         public void InitTable()
         {
             PraseXML.Instance.StartPraseXML(FilePath, NodePath);
-            Table = PraseXML.Instance.table;
             this.XmlList = PraseXML.Instance.XMLTree;
-            if (Table != null)
-                OriginValueTable = Table.Copy();
-
-            var list = new ObservableCollection<string>();
-            for (int i = 0; i < PraseXML.Instance.Attrs.Count; i++)
-                list.Add(PraseXML.Instance.Attrs[i]);
-            this.AttrList = list;
-
             this.SelectedItems = new ObservableCollection<DataRow>();
             this.OriginSeletedItems = new List<DataRow>();
+            this.Table = PraseXML.Instance.table;
+            if (Table != null)
+                OriginValueTable = Table.Copy();
+           
         }
-
+      
         private void InitCondition()
         {
             this.CurrentReplace = new ReplaceContion();
@@ -328,8 +323,7 @@ namespace ConfigWindow
         }
         public bool SaveFile(string file, DataTable datas)
         {
-            //return PraseXML.Instance.SaveFile(file, datas);
-            return false;
+            return PraseXML.Instance.SaveFile(this.FilePath);
         }
 
         public ICommand GirdUpdateCommand { get; set; }
@@ -371,9 +365,11 @@ namespace ConfigWindow
         {
             var arch = obj as XMLArch;
             if (arch == null) return;
-            PraseXML.Instance.SaveFile(this.FilePath);
-
             this.Table = arch.ChildAttrs;
+            var list = new ObservableCollection<string>();
+            for (int i = 0; i < arch.Attrs.Count; i++)
+                list.Add(arch.Attrs[i]);
+            this.AttrList = list;
             this.OriginValueTable = arch.ChildAttrs.Copy();
         }
 

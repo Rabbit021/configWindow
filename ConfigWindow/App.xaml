@@ -76,7 +76,7 @@
 			 <HierarchicalDataTemplate x:Key="ChildNode" 
                               ItemsSource="{Binding ChildNode}">
      						 <StackPanel Orientation="Vertical" Width="Auto">
-			 		<TextBlock d:LayoutOverrides="Width" Text="{Binding Node.Name}" />
+			 		<TextBlock d:LayoutOverrides="Width" Text="{Binding DisplayName}" />
 			 	</StackPanel>
    			 </HierarchicalDataTemplate>
     	   </ResourceDictionary>

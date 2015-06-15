@@ -30,7 +30,7 @@
 					</i:EventTrigger>
 				</i:Interaction.Triggers>
 			</TextBox>
-			<DataGrid x:Name="dataGrid" Grid.Column="1" Grid.Row="1"  ItemsSource="{Binding Table}" Margin="0,22,0,0">
+			<DataGrid x:Name="dataGrid" Grid.Column="1" Grid.Row="1"  ItemsSource="{Binding Table, Mode=TwoWay}" Margin="0,22,0,0">
 				
 				<i:Interaction.Triggers>
 					<i:EventTrigger EventName="SelectionChanged">

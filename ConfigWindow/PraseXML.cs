@@ -58,13 +58,14 @@ namespace ConfigFileAlter
             if (root == null) return dataTable;
             var NodeList = root.ChildNodes;
             int index = 0;
-            foreach (XmlElement node in NodeList)
-                ParseNode(node, index++, dataTable, attrs);
+            foreach (var node in NodeList)
+                ParseNode(node as XmlElement, index++, dataTable, attrs);
             return dataTable;
         }
 
         public void ParseNode(XmlElement node, int index, DataTable dataTable, List<string> attrList)
         {
+            if (node == null) return;
             var row = dataTable.NewRow();
             AddColumn(Constants.IndexName, index.ToString(), row, dataTable);
             AddColumn(Constants.NodeName, node.Name, row, dataTable);
@@ -209,9 +210,11 @@ namespace ConfigFileAlter
 
             ObservableCollection<XMLArch> tree = new ObservableCollection<XMLArch>();
             int count = 0;
-            foreach (XmlElement node in NodeList)
+            foreach (XmlNode node in NodeList)
             {
-                tree.Add(PraseRoot(node, count++));
+                XmlElement element = node as XmlElement;
+                if (element == null) continue;
+                tree.Add(PraseRoot(element, count++));
             }
             arch.ChildNode = tree;
 

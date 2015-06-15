@@ -156,7 +156,7 @@ namespace ConfigWindow
                 var vm = sender as MainViewModel;
                 if (vm == null) return;
                 if (vm.Table != null)
-                    vm.SaveFile(e.OldValue.ToString(), vm.Table);
+                    vm.SaveFile(e.OldValue.ToString());
                 vm.InitTable();
             }));
         #endregion
@@ -182,13 +182,13 @@ namespace ConfigWindow
         #endregion
 
         #region XmlList
-        public List<XMLArch> XmlList
+        public ObservableCollection<XMLArch> XmlList
         {
-            get { return (List<XMLArch>)GetValue(XmlListProperty); }
+            get { return (ObservableCollection<XMLArch>)GetValue(XmlListProperty); }
             set { SetValue(XmlListProperty, value); }
         }
         public static readonly DependencyProperty XmlListProperty =
-            DependencyProperty.Register("XmlList", typeof(List<XMLArch>), typeof(MainViewModel), new PropertyMetadata((sender, e) => { }));
+            DependencyProperty.Register("XmlList", typeof(ObservableCollection<XMLArch>), typeof(MainViewModel), new PropertyMetadata((sender, e) => { }));
         #endregion
 
         public DataTable OriginValueTable { get; set; }
@@ -218,7 +218,7 @@ namespace ConfigWindow
             RegistyCommand();
             this.PropertyList = new List<string>();
             this.FileList = new ObservableCollection<string>();
-            this.XmlList = new List<XMLArch>();
+            this.XmlList = new ObservableCollection<XMLArch>();
         }
 
         public void InitTable()
@@ -227,12 +227,11 @@ namespace ConfigWindow
             this.XmlList = PraseXML.Instance.XMLTree;
             this.SelectedItems = new ObservableCollection<DataRow>();
             this.OriginSeletedItems = new List<DataRow>();
-            this.Table = PraseXML.Instance.table;
             if (Table != null)
                 OriginValueTable = Table.Copy();
-           
+
         }
-      
+
         private void InitCondition()
         {
             this.CurrentReplace = new ReplaceContion();
@@ -312,18 +311,19 @@ namespace ConfigWindow
                     if (this.FileList.Contains(filename)) continue;
                     this.FileList.Add(filename);
                 }
+                this.FilePath = openFileDialog.FileNames.First();
             }
         }
 
         public ICommand SaveFileCommand { get; set; }
         private void SaveFileAction(object obj)
         {
-            var res = SaveFile(this.FilePath, Table);
+            var res = SaveFile(this.FilePath);
             if (res) InitTable();
         }
-        public bool SaveFile(string file, DataTable datas)
+        public bool SaveFile(string fileName)
         {
-            return PraseXML.Instance.SaveFile(this.FilePath);
+            return PraseXML.Instance.SaveFile(fileName);
         }
 
         public ICommand GirdUpdateCommand { get; set; }

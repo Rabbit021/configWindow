@@ -25,7 +25,7 @@ namespace ConfigFileAlter
         public string nodePath = "";
         public DataTable table;
         public List<string> Attrs = new List<string>();
-        public List<XMLArch> XMLTree = new List<XMLArch>();
+        public ObservableCollection<XMLArch> XMLTree;
 
         public void StartPraseXML(string filename, string nodePath = "")
         {
@@ -38,13 +38,13 @@ namespace ConfigFileAlter
                 table = new DataTable();
                 index = 0;
                 this.nodePath = nodePath;
+
                 if (!string.IsNullOrEmpty(nodePath))
                     this.table = ParseNodes(doc.SelectSingleNode(nodePath) as XmlElement, this.Attrs);
                 else
                     this.table = ParseNodes(rootElement, this.Attrs);
 
                 this.XMLTree = PraseFile(filename);
-
             }
             catch (System.Exception ex)
             {
@@ -111,8 +111,6 @@ namespace ConfigFileAlter
         public bool SaveFile(string filename)
         {
             if (string.IsNullOrEmpty(filename)) return false;
-            var res = MessageBox.Show("是否保存", "", MessageBoxButton.YesNo);
-            if (res == MessageBoxResult.No) return false;
             try
             {
                 UpdateDocumnent(doc, XMLTree);
@@ -126,7 +124,7 @@ namespace ConfigFileAlter
             }
         }
 
-        private void UpdateDocumnent(XmlNode doc, List<XMLArch> XMLTree)
+        private void UpdateDocumnent(XmlNode doc, ObservableCollection<XMLArch> XMLTree)
         {
             foreach (var child in XMLTree)
             {
@@ -157,7 +155,7 @@ namespace ConfigFileAlter
             }
         }
 
-        private void SaveNode(List<XMLArch> childNode, XmlElement root)
+        private void SaveNode(ObservableCollection<XMLArch> childNode, XmlElement root)
         {
             foreach (var item in childNode)
             {
@@ -184,9 +182,10 @@ namespace ConfigFileAlter
             }
         }
 
-        private List<XMLArch> PraseFile(string fileName)
+        private ObservableCollection<XMLArch> PraseFile(string fileName)
         {
-            List<XMLArch> tree = new List<XMLArch>();
+            this.XMLTree = null;
+            ObservableCollection<XMLArch> tree = new ObservableCollection<XMLArch>();
             try
             {
                 var arch = PraseRoot(doc.DocumentElement, 0);
@@ -208,7 +207,7 @@ namespace ConfigFileAlter
             arch.ChildAttrs = this.ParseNodes(root, arch.Attrs);
             var NodeList = root.ChildNodes;
 
-            List<XMLArch> tree = new List<XMLArch>();
+            ObservableCollection<XMLArch> tree = new ObservableCollection<XMLArch>();
             int count = 0;
             foreach (XmlElement node in NodeList)
             {
@@ -224,6 +223,6 @@ namespace ConfigFileAlter
         public XmlElement Node { get; set; }
         public DataTable ChildAttrs { get; set; }
         public List<string> Attrs { get; set; }
-        public List<XMLArch> ChildNode { get; set; }
+        public ObservableCollection<XMLArch> ChildNode { get; set; }
     }
 }

@@ -23,7 +23,7 @@
 				<ColumnDefinition Width="0.294*"/>
 				<ColumnDefinition Width="0.706*"/>
 			</Grid.ColumnDefinitions>
-			<TextBox x:Name="path" d:LayoutOverrides="Height" Grid.Column="1" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Center" Text="{Binding NodePath, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
+			<TextBox x:Name="path" d:LayoutOverrides="Height" Grid.Column="1" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Center" Text="{Binding NodePath, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" IsEnabled="False">
 				<i:Interaction.Triggers>
 					<i:EventTrigger>
 						<i:InvokeCommandAction/>

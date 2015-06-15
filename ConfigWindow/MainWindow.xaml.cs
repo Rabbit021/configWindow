@@ -155,6 +155,8 @@ namespace ConfigWindow
             {
                 var vm = sender as MainViewModel;
                 if (vm == null) return;
+                if (vm.Table != null)
+                    vm.SaveFile(e.OldValue.ToString());
                 vm.InitTable();
             }));
         #endregion
@@ -179,6 +181,16 @@ namespace ConfigWindow
             DependencyProperty.Register("AttrList", typeof(ObservableCollection<string>), typeof(MainViewModel), new PropertyMetadata((sender, e) => { }));
         #endregion
 
+        #region XmlList
+        public ObservableCollection<XMLArch> XmlList
+        {
+            get { return (ObservableCollection<XMLArch>)GetValue(XmlListProperty); }
+            set { SetValue(XmlListProperty, value); }
+        }
+        public static readonly DependencyProperty XmlListProperty =
+            DependencyProperty.Register("XmlList", typeof(ObservableCollection<XMLArch>), typeof(MainViewModel), new PropertyMetadata((sender, e) => { }));
+        #endregion
+
         public DataTable OriginValueTable { get; set; }
         public List<DataRow> OriginSeletedItems { get; set; }
         public List<string> PropertyList { get; set; }
@@ -197,6 +209,7 @@ namespace ConfigWindow
             this.SaveFileCommand = new ActionCommand(SaveFileAction);
             this.GirdUpdateCommand = new ActionCommand(GirdUpdateAction);
             this.CheckColumsCommand = new ActionCommand(CheckColumsAction);
+            this.ChangeItemCommand = new ActionCommand(ChangeItemAction);
         }
 
         public void Load()
@@ -205,19 +218,18 @@ namespace ConfigWindow
             RegistyCommand();
             this.PropertyList = new List<string>();
             this.FileList = new ObservableCollection<string>();
+            this.XmlList = new ObservableCollection<XMLArch>();
         }
 
         public void InitTable()
         {
             PraseXML.Instance.StartPraseXML(FilePath, NodePath);
-            Table = PraseXML.Instance.table;
-            var list = new ObservableCollection<string>();
-            for (int i = 0; i < PraseXML.Instance.Attrs.Count; i++)
-                list.Add(PraseXML.Instance.Attrs[i]);
-            this.AttrList = list;
-            OriginValueTable = Table.Copy();
+            this.XmlList = PraseXML.Instance.XMLTree;
             this.SelectedItems = new ObservableCollection<DataRow>();
             this.OriginSeletedItems = new List<DataRow>();
+            if (Table != null)
+                OriginValueTable = Table.Copy();
+
         }
 
         private void InitCondition()
@@ -299,15 +311,19 @@ namespace ConfigWindow
                     if (this.FileList.Contains(filename)) continue;
                     this.FileList.Add(filename);
                 }
-                this.FilePath = this.FileList.First();
+                this.FilePath = openFileDialog.FileNames.First();
             }
         }
 
         public ICommand SaveFileCommand { get; set; }
         private void SaveFileAction(object obj)
         {
-            var res = PraseXML.Instance.SaveFile(this.FilePath, Table);
+            var res = SaveFile(this.FilePath);
             if (res) InitTable();
+        }
+        public bool SaveFile(string fileName)
+        {
+            return PraseXML.Instance.SaveFile(fileName);
         }
 
         public ICommand GirdUpdateCommand { get; set; }
@@ -342,6 +358,19 @@ namespace ConfigWindow
             var propertyies = (System.Collections.IList)obj;
             if (propertyies == null) return;
             this.PropertyList = propertyies.Cast<string>().ToList();
+        }
+
+        public ICommand ChangeItemCommand { get; set; }
+        private void ChangeItemAction(object obj)
+        {
+            var arch = obj as XMLArch;
+            if (arch == null) return;
+            this.Table = arch.ChildAttrs;
+            var list = new ObservableCollection<string>();
+            for (int i = 0; i < arch.Attrs.Count; i++)
+                list.Add(arch.Attrs[i]);
+            this.AttrList = list;
+            this.OriginValueTable = arch.ChildAttrs.Copy();
         }
 
         // 执行更新
@@ -612,7 +641,7 @@ namespace ConfigWindow
 
         public override void Exec()
         {
-            this.CanExec = First != 0 || Last != 0;
+            this.CanExec = First != 0 || Last != 0 || this.EndIndex != 0;
             Container.ExecUpdate();
         }
     }

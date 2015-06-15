@@ -25,53 +25,66 @@ namespace ConfigFileAlter
         public string nodePath = "";
         public DataTable table;
         public List<string> Attrs = new List<string>();
+        public ObservableCollection<XMLArch> XMLTree;
 
         public void StartPraseXML(string filename, string nodePath = "")
         {
-            doc = new XmlDocument();
-            if (!File.Exists(filename)) return;
-            doc.Load(filename);
-            var rootElement = doc.DocumentElement;
-            table = new DataTable();
-            index = 0;
-            this.nodePath = nodePath;
-            Attrs.Clear();
-            if (!string.IsNullOrEmpty(nodePath))
-                ParseNodes(doc.SelectSingleNode(nodePath) as XmlElement);
-            else
-                ParseNodes(rootElement);
+            try
+            {
+                doc = new XmlDocument();
+                if (!File.Exists(filename)) return;
+                doc.Load(filename);
+                var rootElement = doc.DocumentElement;
+                table = new DataTable();
+                index = 0;
+                this.nodePath = nodePath;
+
+                if (!string.IsNullOrEmpty(nodePath))
+                    this.table = ParseNodes(doc.SelectSingleNode(nodePath) as XmlElement, this.Attrs);
+                else
+                    this.table = ParseNodes(rootElement, this.Attrs);
+
+                this.XMLTree = PraseFile(filename);
+            }
+            catch (System.Exception ex)
+            {
+
+            }
         }
 
-        public void ParseNodes(XmlElement root)
+        public DataTable ParseNodes(XmlElement root, List<string> attrs)
         {
-            if (root == null) return;
+            var dataTable = new DataTable();
+            if (root == null) return dataTable;
             var NodeList = root.ChildNodes;
             int index = 0;
             foreach (XmlElement node in NodeList)
-                ParseNode(node, index++);
+                ParseNode(node, index++, dataTable, attrs);
+            return dataTable;
         }
 
-        public void ParseNode(XmlElement node, int index)
+        public void ParseNode(XmlElement node, int index, DataTable dataTable, List<string> attrList)
         {
+            var row = dataTable.NewRow();
+            AddColumn(Constants.IndexName, index.ToString(), row, dataTable);
+            AddColumn(Constants.NodeName, node.Name, row, dataTable);
+            dataTable.Rows.Add(row);
+
             string result = string.Empty;
             var attrs = node.Attributes;
             if (attrs == null || attrs.Count == 0) return;
-            var row = this.table.NewRow();
-            AddColumn(Constants.IndexName, index.ToString(), row);
-            AddColumn(Constants.NodeName, node.Name, row);
             foreach (XmlAttribute attr in attrs)
             {
-                AddColumn(attr.Name, attr.Value, row);
-                if (this.Attrs.Contains(attr.Name)) continue;
-                    this.Attrs.Add(attr.Name);
+                AddColumn(attr.Name, attr.Value, row, dataTable);
+                if (attrList.Contains(attr.Name)) continue;
+                attrList.Add(attr.Name);
             }
-            this.table.Rows.Add(row);
         }
 
-        private void AddColumn(string name, string value, DataRow row)
+        private void AddColumn(string name, string value, DataRow row, DataTable dataTable)
         {
-            if (!this.table.Columns.Contains(name))
-                this.table.Columns.Add(name);
+            if (!dataTable.Columns.Contains(name))
+                dataTable.Columns.Add(name);
             row[name] = value;
         }
 
@@ -82,6 +95,7 @@ namespace ConfigFileAlter
         /// <param name="datas"></param>
         public bool SaveFile(string filename, DataTable datas)
         {
+            if (string.IsNullOrEmpty(filename)) return false;
             try
             {
                 UpdateNode(doc.SelectSingleNode(nodePath) as XmlElement, datas);
@@ -90,29 +104,125 @@ namespace ConfigFileAlter
             }
             catch (System.Exception ex)
             {
-                MessageBox.Show("保存失败");
+                MessageBox.Show("保存异常");
                 return false;
+            }
+        }
+        public bool SaveFile(string filename)
+        {
+            if (string.IsNullOrEmpty(filename)) return false;
+            try
+            {
+                UpdateDocumnent(doc, XMLTree);
+                doc.Save(filename);
+                return true;
+            }
+            catch
+            {
+                MessageBox.Show("保存异常");
+                return false;
+            }
+        }
+
+        private void UpdateDocumnent(XmlNode doc, ObservableCollection<XMLArch> XMLTree)
+        {
+            foreach (var child in XMLTree)
+            {
+                UpdateArch(child);
+                doc.AppendChild(child.Node);
+                UpdateDocumnent(child.Node, child.ChildNode);
+            }
+        }
+
+        private void UpdateArch(XMLArch child)
+        {
+            var datas = child.ChildAttrs;
+            var attrList = child.Attrs;
+            if (attrList == null) return;
+            foreach (DataRow row in datas.Rows)
+            {
+                var nodeName = row[Constants.NodeName].ToString();
+                if (string.IsNullOrEmpty(nodeName)) return;
+                var index = row[Constants.IndexName];
+                string findstr = string.Format("{0}[@{1}='{2}']", nodeName, Constants.IndexName, index);
+                XmlElement xmlChild = child.Node.SelectSingleNode(findstr) as XmlElement;
+                if (xmlChild == null) continue;
+                foreach (var attr in attrList)
+                {
+                    if (string.IsNullOrEmpty(attr)) continue;
+                    xmlChild.SetAttribute(attr, row[attr].ToString());
+                }
+            }
+        }
+
+        private void SaveNode(ObservableCollection<XMLArch> childNode, XmlElement root)
+        {
+            foreach (var item in childNode)
+            {
+                root.AppendChild(item.Node);
+                UpdateNode(item.Node, item.ChildAttrs);
+                SaveNode(item.ChildNode, item.Node);
             }
         }
         public void UpdateNode(XmlElement root, DataTable datas)
         {
             if (root == null || datas.Rows == null) return;
-            root.RemoveAll();
+            //root.RemoveAll();
             foreach (DataRow row in datas.Rows)
-                WriteToAttr(root, row);
-        }
-
-        private void WriteToAttr(XmlElement node, DataRow row)
-        {
-            var nodeName = row[Constants.NodeName].ToString();
-            if (string.IsNullOrEmpty(nodeName)) return;
-            var child = doc.CreateElement(nodeName);
-            node.AppendChild(child);
-            foreach (var attr in Attrs)
             {
-                if (string.IsNullOrEmpty(attr)) continue;
-                child.SetAttribute(attr, row[attr].ToString());
+                var nodeName = row[Constants.NodeName].ToString();
+                if (string.IsNullOrEmpty(nodeName)) return;
+                var child = doc.CreateElement(nodeName);
+                root.AppendChild(child);
+                foreach (var attr in Attrs)
+                {
+                    if (string.IsNullOrEmpty(attr)) continue;
+                    child.SetAttribute(attr, row[attr].ToString());
+                }
             }
         }
+
+        private ObservableCollection<XMLArch> PraseFile(string fileName)
+        {
+            this.XMLTree = null;
+            ObservableCollection<XMLArch> tree = new ObservableCollection<XMLArch>();
+            try
+            {
+                var arch = PraseRoot(doc.DocumentElement, 0);
+                tree.Add(arch);
+            }
+            catch
+            {
+
+            }
+            return tree;
+        }
+
+        private XMLArch PraseRoot(XmlElement root, int index)
+        {
+            XMLArch arch = new XMLArch();
+            root.SetAttribute(Constants.IndexName, index.ToString());
+            arch.Node = root;
+            arch.Attrs = new List<string>();
+            arch.ChildAttrs = this.ParseNodes(root, arch.Attrs);
+            var NodeList = root.ChildNodes;
+
+            ObservableCollection<XMLArch> tree = new ObservableCollection<XMLArch>();
+            int count = 0;
+            foreach (XmlElement node in NodeList)
+            {
+                tree.Add(PraseRoot(node, count++));
+            }
+            arch.ChildNode = tree;
+
+            return arch;
+        }
+    }
+    public class XMLArch : DependencyObject
+    {
+        public XmlElement Node { get; set; }
+        public DataTable ChildAttrs { get; set; }
+        public List<string> Attrs { get; set; }
+        public ObservableCollection<XMLArch> ChildNode { get; set; }
     }
 }

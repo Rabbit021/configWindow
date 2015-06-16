@@ -30,8 +30,7 @@
 					</i:EventTrigger>
 				</i:Interaction.Triggers>
 			</TextBox>
-			<DataGrid x:Name="dataGrid" Grid.Column="1" Grid.Row="1"  ItemsSource="{Binding Table}" Margin="0,22,0,0">
-				
+			<DataGrid x:Name="dataGrid" Grid.Column="1" Grid.Row="1"  ItemsSource="{Binding CurrentTable.DefaultView}" Margin="0,22,0,0">
 				<i:Interaction.Triggers>
 					<i:EventTrigger EventName="SelectionChanged">
 						<i:InvokeCommandAction Command="{Binding SelectionCommand}" CommandParameter="{Binding SelectedItems, ElementName=dataGrid}"/>
@@ -124,13 +123,22 @@
 			</Grid>
 			<TextBox
 		TextWrapping="Wrap" Text="{Binding FilePath}" d:LayoutOverrides="Height" IsReadOnly="True" VerticalContentAlignment="Center"/>
-			<xctk:CheckComboBox x:Name="checkComboBox" HorizontalAlignment="Left" Grid.Column="1" Grid.Row="1" VerticalAlignment="Top" ItemsSource="{Binding AttrList}"  SelectedItemsOverride="{Binding SelectedProperties}">
-				<i:Interaction.Triggers>
-					<i:EventTrigger EventName="ItemSelectionChanged">
-						<i:InvokeCommandAction Command="{Binding CheckColumsCommand}" CommandParameter="{Binding SelectedItems, ElementName=checkComboBox}"/>
-					</i:EventTrigger>
-				</i:Interaction.Triggers>
-			</xctk:CheckComboBox>
+			<WrapPanel Grid.Column="1" HorizontalAlignment="Left" Height="21.836" Margin="0,-0.003,0,0" Orientation="Horizontal" Grid.Row="1" VerticalAlignment="Top">
+				<xctk:CheckComboBox x:Name="checkComboBox" ItemsSource="{Binding AttrList}"  SelectedItemsOverride="{Binding SelectedProperties}">
+					<i:Interaction.Triggers>
+						<i:EventTrigger EventName="ItemSelectionChanged">
+							<i:InvokeCommandAction Command="{Binding CheckColumsCommand}" CommandParameter="{Binding SelectedItems, ElementName=checkComboBox}"/>
+						</i:EventTrigger>
+					</i:Interaction.Triggers>
+				</xctk:CheckComboBox>
+				<xctk:CheckComboBox x:Name="Sort" ItemsSource="{Binding AttrList}"  SelectedItemsOverride="{Binding SelectedProperties}">
+					<i:Interaction.Triggers>
+						<i:EventTrigger EventName="ItemSelectionChanged">
+							<i:InvokeCommandAction Command="{Binding SortOrGroupCheckCommand}" CommandParameter="{Binding SelectedItems, ElementName=checkComboBox}"/>
+						</i:EventTrigger>
+					</i:Interaction.Triggers>
+				</xctk:CheckComboBox>
+			</WrapPanel>
 		</Grid>
 		<Menu>
 			<MenuItem Header="文件">

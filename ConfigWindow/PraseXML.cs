@@ -110,6 +110,7 @@ namespace ConfigFileAlter
             if (string.IsNullOrEmpty(filename)) return false;
             try
             {
+                doc.RemoveAll();
                 UpdateDocumnent(doc, XMLTree);
                 doc.Save(filename);
                 return true;
@@ -240,6 +241,7 @@ namespace ConfigFileAlter
             }
         }
     }
+
     public class XMLArch : DependencyObject
     {
         public XmlElement Node { get; set; }

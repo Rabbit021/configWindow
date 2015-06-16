@@ -220,7 +220,7 @@ namespace ConfigFileAlter
             return arch;
         }
 
-        private void HelperIndex(XmlElement root, HelperIndexType addOrRemove, int index = 0)
+        private void HelperIndex(XmlElement root, HelperIndexType addOrRemove, int index = 1)
         {
             if (root == null) return;
             if (addOrRemove == HelperIndexType.Add)
@@ -232,7 +232,7 @@ namespace ConfigFileAlter
             else
                 root.RemoveAttribute(Constants.IndexName);
             var NodeList = root.ChildNodes;
-            int count = 0;
+            int count = 1;
             foreach (var node in NodeList)
             {
                 var element = node as XmlElement;

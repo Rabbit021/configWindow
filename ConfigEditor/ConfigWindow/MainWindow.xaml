@@ -20,8 +20,8 @@
 				<RowDefinition Height="0.161*"/>
 			</Grid.RowDefinitions>
 			<Grid.ColumnDefinitions>
-				<ColumnDefinition Width="0.294*"/>
-				<ColumnDefinition Width="0.706*"/>
+				<ColumnDefinition Width="0.174*"/>
+				<ColumnDefinition Width="0.826*"/>
 			</Grid.ColumnDefinitions>
 			<TextBox x:Name="path" d:LayoutOverrides="Height" Grid.Column="1" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Center" Text="{Binding NodePath, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" IsEnabled="False">
 				<i:Interaction.Triggers>
@@ -124,20 +124,22 @@
 			<TextBox
 		TextWrapping="Wrap" Text="{Binding FilePath}" d:LayoutOverrides="Height" IsReadOnly="True" VerticalContentAlignment="Center"/>
 			<WrapPanel Grid.Column="1" HorizontalAlignment="Left" Height="21.836" Margin="0,-0.003,0,0" Orientation="Horizontal" Grid.Row="1" VerticalAlignment="Top">
-				<xctk:CheckComboBox x:Name="checkComboBox" ItemsSource="{Binding AttrList}"  SelectedItemsOverride="{Binding SelectedProperties}">
+				<xctk:CheckComboBox x:Name="checkComboBox"  SelectedItemsOverride="{Binding SelectedProperties}" ItemsSource="{Binding AttrList}">
 					<i:Interaction.Triggers>
 						<i:EventTrigger EventName="ItemSelectionChanged">
 							<i:InvokeCommandAction Command="{Binding CheckColumsCommand}" CommandParameter="{Binding SelectedItems, ElementName=checkComboBox}"/>
 						</i:EventTrigger>
 					</i:Interaction.Triggers>
 				</xctk:CheckComboBox>
-				<xctk:CheckComboBox x:Name="Sort" ItemsSource="{Binding AttrList}"  SelectedItemsOverride="{Binding SelectedProperties}">
+				<xctk:CheckComboBox x:Name="Sort" ItemsSource="{Binding AttrList}"  SelectedItemsOverride="{Binding SelectedProperties}" Visibility="Collapsed">
 					<i:Interaction.Triggers>
 						<i:EventTrigger EventName="ItemSelectionChanged">
 							<i:InvokeCommandAction Command="{Binding SortOrGroupCheckCommand}" CommandParameter="{Binding SelectedItems, ElementName=checkComboBox}"/>
 						</i:EventTrigger>
 					</i:Interaction.Triggers>
 				</xctk:CheckComboBox>
+				<xctk:WatermarkTextBox x:Name="watermarkTextBox" TextWrapping="Wrap" Watermark="NewAttribute" Margin="20,0,0,0" MinWidth="80" Text="{Binding NewAttr.AttrName}"/>
+				<Button Content="Add" Command="{Binding AddNewAttributeCommand}"/>
 			</WrapPanel>
 		</Grid>
 		<Menu>

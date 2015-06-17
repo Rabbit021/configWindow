@@ -12,6 +12,7 @@ using ConfigFileAlter;
 using Microsoft.Expression.Interactivity.Core;
 using System.Windows.Controls;
 using Microsoft.Win32;
+using ConfigWindow.Model;
 
 namespace ConfigWindow.VM
 {
@@ -169,6 +170,7 @@ namespace ConfigWindow.VM
         public List<string> PropertyList { get; set; }
         public List<string> SortOrGroupList { get; set; }
         public XMLArch Arch { get; set; }
+        public NewAttribute NewAttr { get; set; }
 
         private void RegistyCommand()
         {
@@ -186,6 +188,7 @@ namespace ConfigWindow.VM
             this.CheckColumsCommand = new ActionCommand(CheckColumsAction);
             this.ChangeItemCommand = new ActionCommand(ChangeItemAction);
             this.SortOrGroupCheckCommand = new ActionCommand(SortOrGroupCheckAction);
+            this.AddNewAttributeCommand = new ActionCommand(AddNewAttributeAction);
         }
 
         public void Load()
@@ -195,6 +198,7 @@ namespace ConfigWindow.VM
             this.PropertyList = new List<string>();
             this.FileList = new ObservableCollection<string>();
             this.XmlList = new ObservableCollection<XMLArch>();
+            this.NewAttr = new NewAttribute();
         }
 
         public void InitTable()
@@ -350,6 +354,30 @@ namespace ConfigWindow.VM
         {
             Arch = obj as XMLArch;
             if (Arch == null) return;
+            ReloadTable();
+        }
+
+        public ICommand AddNewAttributeCommand { get; set; }
+
+        private void AddNewAttributeAction(object obj)
+        {
+            if (this.AttrList == null || string.IsNullOrEmpty(NewAttr.AttrName) || this.Arch.Attrs.Contains(NewAttr.AttrName)) return;
+            var tempTable = Arch.ChildAttrs.Copy();
+            var tempAttrLst = new List<string>();
+            tempAttrLst.Add(NewAttr.AttrName);
+            tempAttrLst.AddRange(Arch.Attrs);
+
+            tempTable.Columns.Add(NewAttr.AttrName);
+            foreach (DataRow row in tempTable.Rows)
+                row[NewAttr.AttrName] = NewAttr.AttrValue;
+
+            Arch.Attrs = tempAttrLst;
+            Arch.ChildAttrs = tempTable;
+            ReloadTable();
+        }
+
+        private void ReloadTable()
+        {
             this.CurrentTable = Arch.ChildAttrs;
             var list = new ObservableCollection<string>();
             for (int i = 0; i < Arch.Attrs.Count; i++)
@@ -357,7 +385,6 @@ namespace ConfigWindow.VM
             this.AttrList = list;
             this.OriginValueTable = Arch.ChildAttrs.Copy();
         }
-
         // 执行更新
         public void ExecUpdate()
         {
@@ -413,5 +440,4 @@ namespace ConfigWindow.VM
             return originStr;
         }
     }
-
 }

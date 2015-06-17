@@ -68,6 +68,7 @@
     <Compile Include="Model\Conditions.cs" />
     <Compile Include="Behavior\NumericBox.cs" />
     <Compile Include="Behavior\PlaceHolderBox.cs" />
+    <Compile Include="Model\NewAttribute.cs" />
     <Compile Include="Vaildate.cs" />
     <Compile Include="VM\MainVM.cs" />
     <Page Include="MainWindow.xaml">

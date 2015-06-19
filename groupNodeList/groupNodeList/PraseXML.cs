@@ -32,7 +32,7 @@ namespace groupNodeList
                 Doc = new XmlDocument();
                 if (!File.Exists(filename))
                 {
-                    Console.WriteLine("{0} not exist",filename);
+                    Console.WriteLine("{0} not exist", filename);
                     return false;
                 }
                 Doc.Load(filename);
@@ -66,7 +66,7 @@ namespace groupNodeList
             }
         }
 
-        public bool SaveFile(string filename, IEnumerable<IGrouping<string, XmlElement>> group)
+        public bool SaveFile(string filename, IEnumerable<IGrouping<string, XmlElement>> group, string groupKey)
         {
             if (group == null) return false;
             try
@@ -81,12 +81,21 @@ namespace groupNodeList
                 node.RemoveAll();
                 foreach (var item in group)
                 {
-                    var newParent = item.First().Clone();
-                    foreach (var child in item)
+                    var newParent = item.First().Clone() as XmlElement;
+                    if (newParent == null) continue;
+                    var groupValue = newParent.GetAttribute(groupKey);
+                    if (string.IsNullOrEmpty(groupValue))
                     {
-                        newParent.AppendChild(child.Clone());
+                        // 此处不分组写入文件
+                        foreach (var child in item)
+                            node.AppendChild(child.Clone());
                     }
-                    node.AppendChild(newParent);
+                    else
+                    {
+                        foreach (var child in item)
+                            newParent.AppendChild(child.Clone());
+                        node.AppendChild(newParent);
+                    }
                 }
                 Doc.Save(newfilname);
                 return true;

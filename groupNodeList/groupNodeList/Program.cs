@@ -31,7 +31,7 @@ namespace groupNodeList
                 var grouped = from element in elements
                               group element by element.GetAttribute(groupKey) into g
                               select g;
-                PraseXML.Instance.SaveFile(filename, grouped);
+                PraseXML.Instance.SaveFile(filename, grouped, groupKey);
             }
             catch (System.Exception ex)
             {

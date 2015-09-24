@@ -65,6 +65,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="IParseFormat.cs" />
     <Compile Include="Model\Conditions.cs" />
     <Compile Include="Behavior\NumericBox.cs" />
     <Compile Include="Behavior\PlaceHolderBox.cs" />

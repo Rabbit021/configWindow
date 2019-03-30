@@ -24,32 +24,6 @@ namespace ConfigFileAlter
         public string nodePath = "";
         public DataTable table;
         public List<string> Attrs = new List<string>();
-        public ObservableCollection<XMLArch> XMLTree;
-
-        public void StartPraseXML(string filename, string nodePath = "")
-        {
-            try
-            {
-                this.filename = filename;
-                doc = new XmlDocument();
-                if (!File.Exists(this.filename)) return;
-                doc.Load(this.filename);
-                var rootElement = doc.DocumentElement;
-                table = new DataTable();
-                this.nodePath = nodePath;
-
-                if (!string.IsNullOrEmpty(nodePath))
-                    this.table = ParseNodes(doc.SelectSingleNode(nodePath) as XmlElement, this.Attrs);
-                else
-                    this.table = ParseNodes(rootElement, this.Attrs);
-
-                this.XMLTree = PraseFile(filename);
-            }
-            catch (System.Exception ex)
-            {
-
-            }
-        }
 
         public DataTable ParseNodes(XmlElement root, List<string> attrs)
         {
@@ -60,7 +34,6 @@ namespace ConfigFileAlter
                 ParseNode(node as XmlElement, dataTable, attrs);
             return dataTable;
         }
-
         public void ParseNode(XmlElement node, DataTable dataTable, List<string> attrList)
         {
             if (node == null) return;
@@ -77,19 +50,12 @@ namespace ConfigFileAlter
                 attrList.Add(attr.Name);
             }
         }
-
         private void AddColumn(string name, string value, DataRow row, DataTable dataTable)
         {
             if (!dataTable.Columns.Contains(name))
                 dataTable.Columns.Add(name);
             row[name] = value;
         }
-
-        /// <summary>
-        /// 保存文件
-        /// </summary>
-        /// <param name="filename"></param>
-        /// <param name="datas"></param>
         public bool SaveFile(string filename, DataTable datas)
         {
             if (string.IsNullOrEmpty(filename)) return false;
@@ -105,22 +71,6 @@ namespace ConfigFileAlter
                 return false;
             }
         }
-        public bool SaveFile(string filename)
-        {
-            if (string.IsNullOrEmpty(filename)) return false;
-            try
-            {
-                UpdateDocumnent(doc, XMLTree);
-                doc.Save(filename);
-                return true;
-            }
-            catch
-            {
-                MessageBox.Show("保存异常");
-                return false;
-            }
-        }
-
         private void UpdateDocumnent(XmlNode doc, ObservableCollection<XMLArch> XMLTree)
         {
             foreach (var child in XMLTree)
@@ -131,7 +81,6 @@ namespace ConfigFileAlter
                 UpdateDocumnent(child.Node, child.ChildNode);
             }
         }
-
         private void UpdateArch(XMLArch child)
         {
             var datas = child.ChildAttrs;
@@ -153,7 +102,6 @@ namespace ConfigFileAlter
                 }
             }
         }
-
         private void SaveNode(ObservableCollection<XMLArch> childNode, XmlElement root)
         {
             foreach (var item in childNode)
@@ -180,7 +128,6 @@ namespace ConfigFileAlter
                 }
             }
         }
-
         private ObservableCollection<XMLArch> PraseFile(string fileName)
         {
             this.XMLTree = null;
@@ -197,7 +144,6 @@ namespace ConfigFileAlter
             }
             return tree;
         }
-
         private XMLArch PraseRoot(XmlElement root, int index)
         {
             XMLArch arch = new XMLArch();
@@ -218,8 +164,7 @@ namespace ConfigFileAlter
             arch.ChildNode = tree;
             return arch;
         }
-
-        private void HelperIndex(XmlElement root, HelperIndexType addOrRemove, int index = 0)
+        private void HelperIndex(XmlElement root, HelperIndexType addOrRemove, int index = 1)
         {
             if (root == null) return;
             if (addOrRemove == HelperIndexType.Add)
@@ -231,7 +176,7 @@ namespace ConfigFileAlter
             else
                 root.RemoveAttribute(Constants.IndexName);
             var NodeList = root.ChildNodes;
-            int count = 0;
+            int count = 1;
             foreach (var node in NodeList)
             {
                 var element = node as XmlElement;
@@ -239,7 +184,52 @@ namespace ConfigFileAlter
                 HelperIndex(element, HelperIndexType.Add, count++);
             }
         }
+
+        #region Refrence By external
+        public ObservableCollection<XMLArch> XMLTree;
+        public void StartPraseXML(string filename, string nodePath = "")
+        {
+            try
+            {
+                this.filename = filename;
+                doc = new XmlDocument();
+                if (!File.Exists(this.filename)) return;
+                doc.Load(this.filename);
+                var rootElement = doc.DocumentElement;
+                table = new DataTable();
+                this.nodePath = nodePath;
+
+                if (!string.IsNullOrEmpty(nodePath))
+                    this.table = ParseNodes(doc.SelectSingleNode(nodePath) as XmlElement, this.Attrs);
+                else
+                    this.table = ParseNodes(rootElement, this.Attrs);
+
+                this.XMLTree = PraseFile(filename);
+            }
+            catch (System.Exception ex)
+            {
+
+            }
+        }
+        public bool SaveFile(string filename)
+        {
+            if (string.IsNullOrEmpty(filename)) return false;
+            try
+            {
+                doc.RemoveAll();
+                UpdateDocumnent(doc, XMLTree);
+                doc.Save(filename);
+                return true;
+            }
+            catch
+            {
+                MessageBox.Show("保存异常");
+                return false;
+            }
+        }
+        #endregion
     }
+
     public class XMLArch : DependencyObject
     {
         public XmlElement Node { get; set; }

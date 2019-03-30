@@ -1,0 +1,24 @@
+<Root>
+  <NodeList>
+    <PageSubDataDicNode PanelPath="LengzhanRe/Guolu" Position="-3.105361,-8.084182,-10.30652" Rotation="0,0,0,1" SubDataDisplayName="1#锅炉" SubDataEnglishName="DVD_1#guolu" Expression="DVD_1#guolu" group="1" />
+    <PageSubDataDicNode PanelPath="LengzhanRe/Guolu" Position="-8.409554,-8.084182,-10.30652" Rotation="0,0,0,1" SubDataDisplayName="2#锅炉" SubDataEnglishName="DVD_2#guolu" Expression="DVD_2#guolu" group="1" />
+    <PageSubDataDicNode PanelPath="LengzhanRe/Guolu" Position="-12.77974,-8.084182,-10.30652" Rotation="0,0,0,1" SubDataDisplayName="3#锅炉" SubDataEnglishName="DVD_3#guolu" Expression="DVD_3#guolu" group="1" />
+    <PageSubDataDicNode PanelPath="LengzhanRe/Reshuiguandao" Position="-28.02729,-11.54786,-8.758493" Rotation="0,0,0,1" SubDataDisplayName="A1热水管道" SubDataEnglishName="DVD_A1diqureshuiguan001" Expression="DVD_A1diqureshuiguan001" group="" />
+    <PageSubDataDicNode PanelPath="LengzhanRe/Reshuiguandao" Position="-26.28552,-11.54786,-7.706409" Rotation="0,0,0,1" SubDataDisplayName="A1热水管道" SubDataEnglishName="DVD_A1gaoqureshuiguan" Expression="DVD_A1gaoqureshuiguan" group="" />
+    <PageSubDataDicNode PanelPath="LengzhanRe/Reshuiguandao" Position="-0.3067865,-12.92843,-5.392874" Rotation="0,0,0,1" SubDataDisplayName="A2热水管道" SubDataEnglishName="DVD_A2reshuiguan" Expression="DVD_A2reshuiguan" group="" />
+    <PageSubDataDicNode PanelPath="LengzhanRe/Reshuiguandao" Position="-0.496418,-12.66639,-8.705116" Rotation="0,0,0,1" SubDataDisplayName="A3热水管道" SubDataEnglishName="DVD_A3reshuiguan" Expression="DVD_A3reshuiguan" group="" />
+    <PageSubDataDicNode PanelPath="LengzhanRe/Reshuiguandao" Position="-0.4491796,-12.92843,-10.35744" Rotation="0,0,0,1" SubDataDisplayName="A4热水管道" SubDataEnglishName="DVD_A4reshuiguan" Expression="DVD_A4reshuiguan" group="" />
+    <PageSubDataDicNode PanelPath="LengzhanRe/Banshizhuanhuanqi" Position="-17.89279,-13.66099,-1.291022" Rotation="0,0,0,1" SubDataDisplayName="水-水板式转换器1" SubDataEnglishName="DVD_banhuan1" Expression="DVD_banhuan1" group="" />
+    <PageSubDataDicNode PanelPath="LengzhanRe/Banshizhuanhuanqi" Position="-15.6251,-13.66099,-1.291022" Rotation="0,0,0,1" SubDataDisplayName="水-水板式转换器2" SubDataEnglishName="DVD_banhuan2" Expression="DVD_banhuan2" group="" />
+    <PageSubDataDicNode PanelPath="LengzhanRe/Banshizhuanhuanqi" Position="-13.33059,-13.66099,-1.291022" Rotation="0,0,0,1" SubDataDisplayName="水-水板式转换器3" SubDataEnglishName="DVD_banhuan3" Expression="DVD_banhuan3" group="" />
+    <PageSubDataDicNode PanelPath="LengzhanRe/Banshizhuanhuanqi" Position="-11.11323,-13.66099,-1.291022" Rotation="0,0,0,1" SubDataDisplayName="水-水板式转换器4" SubDataEnglishName="DVD_banhuan4" Expression="DVD_banhuan4" group="" />
+    <PageSubDataDicNode PanelPath="LengzhanRe/Banshizhuanhuanqi" Position="-8.819963,-13.66099,-1.291022" Rotation="0,0,0,1" SubDataDisplayName="水-水板式转换器5" SubDataEnglishName="DVD_banhuan5" Expression="DVD_banhuan5" group="" />
+    <PageSubDataDicNode PanelPath="LengzhanRe/Banshizhuanhuanqi" Position="-6.549116,-13.66099,-1.291022" Rotation="0,0,0,1" SubDataDisplayName="水-水板式转换器6" SubDataEnglishName="DVD_banhuan6" Expression="DVD_banhuan6" group="" />
+    <PageSubDataDicNode PanelPath="LengzhanRe/Banshizhuanhuanqi" Position="-4.265559,-13.66099,-1.291022" Rotation="0,0,0,1" SubDataDisplayName="水-水板式转换器7" SubDataEnglishName="DVD_banhuan7" Expression="DVD_banhuan7" group="" />
+    <PageSubDataDicNode PanelPath="LengzhanRe/Yicibianpinbeng" Position="-20.69098,-14.07044,-10.79008" Rotation="0,0,0,1" SubDataDisplayName="一次变频泵1-3" SubDataEnglishName="DVD_bianbinbeng123" Expression="DVD_bianbinbeng123" group="2" />
+    <PageSubDataDicNode PanelPath="LengzhanRe/Yicibianpinbeng" Position="-14.20732,-14.07044,-10.79008" Rotation="0,0,0,1" SubDataDisplayName="一次变频泵4-6" SubDataEnglishName="DVD_bianbinbeng456" Expression="DVD_bianbinbeng456" group="2" />
+    <PageSubDataDicNode PanelPath="LengzhanRe/Yicibianpinbeng" Position="-7.706831,-14.07044,-10.79008" Rotation="0,0,0,1" SubDataDisplayName="一次变频泵7-10" SubDataEnglishName="DVD_bianbinbeng78910" Expression="DVD_bianbinbeng78910" group="2" />
+    <PageSubDataDicNode PanelPath="LengzhanRe/Reshuiguandao" Position="-0.3067865,-12.92843,-2.373711" Rotation="0,0,0,1" SubDataDisplayName="地下热水管道" SubDataEnglishName="DVD_dixiareshui" Expression="DVD_dixiareshui" group="" />
+    <PageSubDataDicNode PanelPath="LengzhanRe/Fenjishuiqiguandao" Position="-0.3067865,-12.92843,-4.070674" Rotation="0,0,0,1" SubDataDisplayName="分、集水器管道" SubDataEnglishName="DVD_zongjifenshuiguan" Expression="DVD_zongjifenshuiguan" group="" />
+  </NodeList>
+</Root>

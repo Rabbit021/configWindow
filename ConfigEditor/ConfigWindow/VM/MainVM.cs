@@ -1,47 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Text;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
-using System.Xml;
-using System.IO;
-using System.Collections.ObjectModel;
-using ConfigFileAlter;
-using System.Data;
-using Microsoft.Expression.Interactivity.Core;
 using StringOperation;
-using System.ComponentModel;
+using System.Collections.ObjectModel;
+using StringOperation;
+using ConfigFileAlter;
+using Microsoft.Expression.Interactivity.Core;
+using System.Windows.Controls;
 using Microsoft.Win32;
+using ConfigWindow.Model;
 
-namespace ConfigWindow
+namespace ConfigWindow.VM
 {
-    /// <summary>
-    /// MainWindow.xaml 的交互逻辑
-    /// </summary>
-    public partial class MainWindow : Window
-    {
-        public MainWindow()
-        {
-            InitializeComponent();
-            this.Loaded -= MainWindow_Loaded;
-            this.Loaded += MainWindow_Loaded;
-        }
-
-        public void MainWindow_Loaded(object sender, RoutedEventArgs e)
-        {
-            this.DataContext = MainViewModel.Instance;
-            MainViewModel.Instance.Load();
-        }
-    }
-
     public class MainViewModel : DependencyObject
     {
         #region Instance
@@ -53,14 +27,14 @@ namespace ConfigWindow
         }
         #endregion
 
-        #region Table
-        public DataTable Table
+        #region CurrentTable
+        public DataTable CurrentTable
         {
-            get { return (DataTable)GetValue(TableProperty); }
-            set { SetValue(TableProperty, value); }
+            get { return (DataTable)GetValue(CurrentTableProperty); }
+            set { SetValue(CurrentTableProperty, value); }
         }
-        public static readonly DependencyProperty TableProperty =
-            DependencyProperty.Register("Table", typeof(DataTable), typeof(MainViewModel), new PropertyMetadata((sender, e) => { }));
+        public static readonly DependencyProperty CurrentTableProperty =
+            DependencyProperty.Register("CurrentTable", typeof(DataTable), typeof(MainViewModel), new PropertyMetadata((sender, e) => { }));
         #endregion
 
         #region TestStr
@@ -155,7 +129,7 @@ namespace ConfigWindow
             {
                 var vm = sender as MainViewModel;
                 if (vm == null) return;
-                if (vm.Table != null)
+                if (vm.CurrentTable != null)
                     vm.SaveFile(e.OldValue.ToString());
                 vm.InitTable();
             }));
@@ -194,6 +168,9 @@ namespace ConfigWindow
         public DataTable OriginValueTable { get; set; }
         public List<DataRow> OriginSeletedItems { get; set; }
         public List<string> PropertyList { get; set; }
+        public List<string> SortOrGroupList { get; set; }
+        public XMLArch Arch { get; set; }
+        public NewAttribute NewAttr { get; set; }
 
         private void RegistyCommand()
         {
@@ -210,6 +187,8 @@ namespace ConfigWindow
             this.GirdUpdateCommand = new ActionCommand(GirdUpdateAction);
             this.CheckColumsCommand = new ActionCommand(CheckColumsAction);
             this.ChangeItemCommand = new ActionCommand(ChangeItemAction);
+            this.SortOrGroupCheckCommand = new ActionCommand(SortOrGroupCheckAction);
+            this.AddNewAttributeCommand = new ActionCommand(AddNewAttributeAction);
         }
 
         public void Load()
@@ -219,6 +198,7 @@ namespace ConfigWindow
             this.PropertyList = new List<string>();
             this.FileList = new ObservableCollection<string>();
             this.XmlList = new ObservableCollection<XMLArch>();
+            this.NewAttr = new NewAttribute();
         }
 
         public void InitTable()
@@ -227,8 +207,8 @@ namespace ConfigWindow
             this.XmlList = PraseXML.Instance.XMLTree;
             this.SelectedItems = new ObservableCollection<DataRow>();
             this.OriginSeletedItems = new List<DataRow>();
-            if (Table != null)
-                OriginValueTable = Table.Copy();
+            if (CurrentTable != null)
+                OriginValueTable = CurrentTable.Copy();
 
         }
 
@@ -319,7 +299,8 @@ namespace ConfigWindow
         private void SaveFileAction(object obj)
         {
             var res = SaveFile(this.FilePath);
-            if (res) InitTable();
+            if (CurrentTable != null)
+                OriginValueTable = CurrentTable.Copy();
         }
         public bool SaveFile(string fileName)
         {
@@ -339,7 +320,7 @@ namespace ConfigWindow
                 var index = row[Constants.IndexName];
                 string filter = string.Format(@"{0}='{1}'", Constants.IndexName, index);
                 var origonRows = OriginValueTable.Select(filter);
-                var newValue = Table.Select(filter);
+                var newValue = CurrentTable.Select(filter);
                 if (origonRows.Length >= 0)
                 {
                     string column = cell.Column.Header.ToString();
@@ -359,20 +340,51 @@ namespace ConfigWindow
             if (propertyies == null) return;
             this.PropertyList = propertyies.Cast<string>().ToList();
         }
+        public ICommand SortOrGroupCheckCommand { get; set; }
+        private void SortOrGroupCheckAction(object obj)
+        {
+            var propertyies = (System.Collections.IList)obj;
+            if (propertyies == null) return;
+            this.SortOrGroupList = propertyies.Cast<string>().ToList();
+            this.CurrentTable = this.CurrentTable.Select("", "SubDataDisplayName asc").CopyToDataTable();
+        }
 
         public ICommand ChangeItemCommand { get; set; }
         private void ChangeItemAction(object obj)
         {
-            var arch = obj as XMLArch;
-            if (arch == null) return;
-            this.Table = arch.ChildAttrs;
-            var list = new ObservableCollection<string>();
-            for (int i = 0; i < arch.Attrs.Count; i++)
-                list.Add(arch.Attrs[i]);
-            this.AttrList = list;
-            this.OriginValueTable = arch.ChildAttrs.Copy();
+            Arch = obj as XMLArch;
+            if (Arch == null) return;
+            ReloadTable();
         }
 
+        public ICommand AddNewAttributeCommand { get; set; }
+
+        private void AddNewAttributeAction(object obj)
+        {
+            if (this.AttrList == null || string.IsNullOrEmpty(NewAttr.AttrName) || this.Arch.Attrs.Contains(NewAttr.AttrName)) return;
+            var tempTable = Arch.ChildAttrs.Copy();
+            var tempAttrLst = new List<string>();
+            tempAttrLst.Add(NewAttr.AttrName);
+            tempAttrLst.AddRange(Arch.Attrs);
+
+            tempTable.Columns.Add(NewAttr.AttrName);
+            foreach (DataRow row in tempTable.Rows)
+                row[NewAttr.AttrName] = NewAttr.AttrValue;
+
+            Arch.Attrs = tempAttrLst;
+            Arch.ChildAttrs = tempTable;
+            ReloadTable();
+        }
+
+        private void ReloadTable()
+        {
+            this.CurrentTable = Arch.ChildAttrs;
+            var list = new ObservableCollection<string>();
+            for (int i = 0; i < Arch.Attrs.Count; i++)
+                list.Add(Arch.Attrs[i]);
+            this.AttrList = list;
+            this.OriginValueTable = Arch.ChildAttrs.Copy();
+        }
         // 执行更新
         public void ExecUpdate()
         {
@@ -427,230 +439,5 @@ namespace ConfigWindow
             originStr = originStr.InsertAt(CurrentInsert.position, CurrentInsert.newStr);
             return originStr;
         }
-    }
-
-    public class ReplaceContion : ConditionBase
-    {
-        public override bool CanExec { get; set; }
-
-        public ReplaceContion()
-        {
-            Container = MainViewModel.Instance;
-        }
-
-        #region oldStr
-        public string oldStr
-        {
-            get { return (string)GetValue(oldStrProperty); }
-            set { SetValue(oldStrProperty, value); }
-        }
-
-        public static readonly DependencyProperty oldStrProperty =
-            DependencyProperty.Register("oldStr", typeof(string), typeof(ReplaceContion), new PropertyMetadata("", (sender, e) =>
-            {
-                var vm = sender as ReplaceContion;
-                if (vm == null) return;
-                vm.Exec();
-            }));
-        #endregion
-
-        #region newStr
-        public string newStr
-        {
-            get { return (string)GetValue(newStrProperty); }
-            set { SetValue(newStrProperty, value); }
-        }
-
-        public static readonly DependencyProperty newStrProperty =
-            DependencyProperty.Register("newStr", typeof(string), typeof(ReplaceContion), new PropertyMetadata("", (sender, e) =>
-            {
-                var vm = sender as ReplaceContion;
-                if (vm == null) return;
-                vm.Exec();
-            }));
-        #endregion
-
-        #region UseRegix
-        public bool UseRegix
-        {
-            get { return (bool)GetValue(UseRegixProperty); }
-            set { SetValue(UseRegixProperty, value); }
-        }
-        public static readonly DependencyProperty UseRegixProperty =
-            DependencyProperty.Register("UseRegix", typeof(bool), typeof(ReplaceContion), new PropertyMetadata(false, (sender, e) =>
-            {
-                var vm = sender as ReplaceContion;
-                if (vm == null) return;
-                vm.Exec();
-            }));
-        #endregion
-
-        public override void Exec()
-        {
-            CanExec = !string.IsNullOrEmpty(oldStr);
-            Container.ExecUpdate();
-        }
-    }
-
-    public class InsertCondition : ConditionBase
-    {
-        public override bool CanExec { get; set; }
-        public InsertCondition()
-        {
-            Container = MainViewModel.Instance;
-        }
-        #region position
-        public int position
-        {
-            get { return (int)GetValue(positionProperty); }
-            set { SetValue(positionProperty, value); }
-        }
-        public static readonly DependencyProperty positionProperty =
-            DependencyProperty.Register("position", typeof(int), typeof(InsertCondition), new PropertyMetadata(0, (sender, e) =>
-            {
-                var vm = sender as InsertCondition;
-                if (vm == null) return;
-                vm.Exec();
-            }));
-        #endregion
-
-        #region newStr
-        public string newStr
-        {
-            get { return (string)GetValue(newStrProperty); }
-            set { SetValue(newStrProperty, value); }
-        }
-        public static readonly DependencyProperty newStrProperty =
-            DependencyProperty.Register("newStr", typeof(string), typeof(InsertCondition), new PropertyMetadata((sender, e) =>
-            {
-                var vm = sender as InsertCondition;
-                if (vm == null) return;
-                vm.Exec();
-            }));
-        #endregion
-
-        #region PreFix
-        public string PreFix
-        {
-            get { return (string)GetValue(PreFixProperty); }
-            set { SetValue(PreFixProperty, value); }
-        }
-        public static readonly DependencyProperty PreFixProperty =
-            DependencyProperty.Register("PreFix", typeof(string), typeof(InsertCondition), new PropertyMetadata((sender, e) =>
-            {
-                var vm = sender as InsertCondition;
-                if (vm == null) return;
-                vm.Exec();
-            }));
-        #endregion
-
-        #region Suffix
-        public string Suffix
-        {
-            get { return (string)GetValue(SuffixProperty); }
-            set { SetValue(SuffixProperty, value); }
-        }
-        public static readonly DependencyProperty SuffixProperty =
-            DependencyProperty.Register("Suffix", typeof(string), typeof(InsertCondition), new PropertyMetadata((sender, e) =>
-            {
-                var vm = sender as InsertCondition;
-                if (vm == null) return;
-                vm.Exec();
-            }));
-        #endregion
-
-        public override void Exec()
-        {
-            this.CanExec = !string.IsNullOrEmpty(newStr) || !string.IsNullOrEmpty(PreFix) || !string.IsNullOrEmpty(Suffix);
-            Container.ExecUpdate();
-        }
-    }
-
-    public class RemoveStrCondition : ConditionBase
-    {
-        public override bool CanExec { get; set; }
-
-        public RemoveStrCondition()
-        {
-
-            Container = MainViewModel.Instance;
-        }
-
-        #region First
-        public int First
-        {
-            get { return (int)GetValue(FirstProperty); }
-            set { SetValue(FirstProperty, value); }
-        }
-        public static readonly DependencyProperty FirstProperty =
-            DependencyProperty.Register("First", typeof(int), typeof(RemoveStrCondition), new PropertyMetadata((sender, e) =>
-            {
-                var vm = sender as RemoveStrCondition;
-                if (vm == null) return;
-                vm.Exec();
-            }));
-        #endregion
-
-        #region Last
-        public int Last
-        {
-            get { return (int)GetValue(LastProperty); }
-            set { SetValue(LastProperty, value); }
-        }
-        public static readonly DependencyProperty LastProperty =
-            DependencyProperty.Register("Last", typeof(int), typeof(RemoveStrCondition), new PropertyMetadata((sender, e) =>
-            {
-                var vm = sender as RemoveStrCondition;
-                if (vm == null) return;
-                vm.Exec();
-            }));
-        #endregion
-
-        #region StartIndex
-        public int StartIndex
-        {
-            get { return (int)GetValue(StartIndexProperty); }
-            set { SetValue(StartIndexProperty, value); }
-        }
-        public static readonly DependencyProperty StartIndexProperty =
-            DependencyProperty.Register("StartIndex", typeof(int), typeof(RemoveStrCondition), new PropertyMetadata((sender, e) =>
-            {
-                var vm = sender as RemoveStrCondition;
-                if (vm == null) return;
-                vm.EndIndex = Math.Max(vm.StartIndex, vm.EndIndex);
-                vm.Exec();
-            }));
-        #endregion
-
-        #region EndIndex
-        public int EndIndex
-        {
-            get { return (int)GetValue(EndIndexProperty); }
-            set { SetValue(EndIndexProperty, value); }
-        }
-        public static readonly DependencyProperty EndIndexProperty =
-            DependencyProperty.Register("EndIndex", typeof(int), typeof(RemoveStrCondition), new PropertyMetadata((sender, e) =>
-            {
-                var vm = sender as RemoveStrCondition;
-                if (vm == null) return;
-                vm.EndIndex = Math.Max(vm.StartIndex, vm.EndIndex);
-                vm.Exec();
-
-            }));
-        #endregion
-
-        public override void Exec()
-        {
-            this.CanExec = First != 0 || Last != 0 || this.EndIndex != 0;
-            Container.ExecUpdate();
-        }
-    }
-
-    public class ConditionBase : DependencyObject
-    {
-        public MainViewModel Container;
-        public virtual bool CanExec { get; set; }
-        public virtual bool IsEnable { get; set; }
-        public virtual void Exec() { }
     }
 }

@@ -76,9 +76,67 @@
 			 <HierarchicalDataTemplate x:Key="ChildNode" 
                               ItemsSource="{Binding ChildNode}">
      						 <StackPanel Orientation="Vertical" Width="Auto">
-			 		<TextBlock d:LayoutOverrides="Width" Text="{Binding DisplayName}" />
+			 		<TextBlock d:LayoutOverrides="Width" Text="{Binding DisplayName}" FontSize="13.333" />
 			 	</StackPanel>
    			 </HierarchicalDataTemplate>
+			 <Style x:Key="{ComponentResourceKey ResourceId=DataGridSelectAllButtonStyle, TypeInTargetAssembly={x:Type DataGrid}}" TargetType="{x:Type Button}">
+			 	<Setter Property="Template">
+			 		<Setter.Value>
+			 			<ControlTemplate TargetType="{x:Type Button}">
+			 				<Grid>
+			 					<Rectangle x:Name="Border" Fill="{DynamicResource {x:Static SystemColors.ControlBrushKey}}" SnapsToDevicePixels="True"/>
+			 					<Polygon x:Name="Arrow" Fill="Black" HorizontalAlignment="Right" Margin="8,8,3,3" Opacity="0.15" Points="0,10 10,10 10,0" Stretch="Uniform" VerticalAlignment="Bottom"/>
+			 				</Grid>
+			 				<ControlTemplate.Triggers>
+			 					<Trigger Property="IsMouseOver" Value="True">
+			 						<Setter Property="Stroke" TargetName="Border" Value="{DynamicResource {x:Static SystemColors.ControlDarkBrushKey}}"/>
+			 					</Trigger>
+			 					<Trigger Property="IsPressed" Value="True">
+			 						<Setter Property="Fill" TargetName="Border" Value="{DynamicResource {x:Static SystemColors.ControlDarkBrushKey}}"/>
+			 					</Trigger>
+			 					<Trigger Property="IsEnabled" Value="False">
+			 						<Setter Property="Visibility" TargetName="Arrow" Value="Collapsed"/>
+			 					</Trigger>
+			 				</ControlTemplate.Triggers>
+			 			</ControlTemplate>
+			 		</Setter.Value>
+			 	</Setter>
+			 </Style>
+			 <SolidColorBrush x:Key="{x:Static DataGrid.FocusBorderBrushKey}" Color="#FF9F9F9F"/>
+			 <Style x:Key="DataGridCellStyle1" TargetType="{x:Type DataGridCell}">
+			 	<Setter Property="Background" Value="Transparent"/>
+			 	<Setter Property="BorderBrush" Value="Transparent"/>
+			 	<Setter Property="BorderThickness" Value="1"/>
+			 	<Setter Property="Template">
+			 		<Setter.Value>
+			 			<ControlTemplate TargetType="{x:Type DataGridCell}">
+			 				<Border BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}" SnapsToDevicePixels="True">
+			 					<VisualStateManager.VisualStateGroups>
+			 						<VisualStateGroup x:Name="SelectionStates">
+			 							<VisualState x:Name="Unselected"/>
+			 							<VisualState x:Name="Selected"/>
+			 						</VisualStateGroup>
+			 						<VisualStateGroup x:Name="FocusStates">
+			 							<VisualState x:Name="Unfocused"/>
+			 							<VisualState x:Name="Focused"/>
+			 						</VisualStateGroup>
+			 					</VisualStateManager.VisualStateGroups>
+			 					<ContentPresenter SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
+			 				</Border>
+			 			</ControlTemplate>
+			 		</Setter.Value>
+			 	</Setter>
+			 	<Style.Triggers>
+			 		<Trigger Property="IsSelected" Value="True">
+			 			<Setter Property="Background" Value="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}"/>
+			 			<Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.HighlightTextBrushKey}}"/>
+			 			<Setter Property="BorderBrush" Value="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}"/>
+			 		</Trigger>
+			 		<Trigger Property="IsKeyboardFocusWithin" Value="True">
+			 			<Setter Property="BorderBrush" Value="{DynamicResource {x:Static DataGrid.FocusBorderBrushKey}}"/>
+			 		</Trigger>
+			 	</Style.Triggers>
+			 </Style>
     	   </ResourceDictionary>
     </Application.Resources>
 </Application>
